@@ -75,6 +75,7 @@ def twitter_logout(request):
     return redirect('index')
 
 
+@login_required
 def index(request):
     return HttpResponse('文字だけアプリ改変テスト')
 
