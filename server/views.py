@@ -30,6 +30,8 @@ def twitter_login(request):
         else:
             twitter_auth_token.oauth_token_secret = oauth_token_secret
             twitter_auth_token.save()
+        print("REDIRECT")
+        print(url)
         return redirect(url)
 
 
@@ -37,7 +39,8 @@ def twitter_callback(request):
     print("HERE")
     if 'denied' in request.GET:
         messages.add_message(request, messages.ERROR, 'Unable to login or login canceled. Please try again.')
-        return render(request, 'server/error_page.html')
+        return redirect('index')
+       # return render(request, 'server/error_page.html')
     twitter_api = TwitterAPI()
     oauth_verifier = request.GET.get('oauth_verifier')
     oauth_token = request.GET.get('oauth_token')
@@ -62,13 +65,16 @@ def twitter_callback(request):
                     return redirect('index')
             else:
                 messages.add_message(request, messages.ERROR, 'Unable to get profile details. Please try again.')
-                return render(request, 'server/error_page.html')
+                return redirect('index')
+       # return render(request, 'server/error_page.html')
         else:
             messages.add_message(request, messages.ERROR, 'Unable to get access token. Please try again.')
-            return render(request, 'server/error_page.html')
+            return redirect('index')
+       # return render(request, 'server/error_page.html')
     else:
         messages.add_message(request, messages.ERROR, 'Unable to retrieve access token. Please try again.')
-        return render(request, 'server/error_page.html')
+        return redirect('index')
+       # return render(request, 'server/error_page.html')
 
 
 @login_required
