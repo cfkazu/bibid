@@ -77,3 +77,8 @@ def twitter_logout(request):
 
 def index(request):
     return HttpResponse('文字だけアプリ改変テスト')
+
+
+@login_required
+def tamesi(request):
+    return HttpResponse('ログイン必要テスト')
