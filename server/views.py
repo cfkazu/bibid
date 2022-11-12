@@ -12,13 +12,18 @@ from twitter_api.twitter_api import TwitterAPI
 
 # Create your views here.
 def twitter_login(request):
+
     twitter_api = TwitterAPI()
     url, oauth_token, oauth_token_secret = twitter_api.twitter_login()
+    print("HERE")
+    print(url)
     if url is None or url == '':
         messages.add_message(request, messages.ERROR, 'Unable to login. Please try again.')
         return render(request, 'server/error_page.html')
     else:
         twitter_auth_token = TwitterAuthToken.objects.filter(oauth_token=oauth_token).first()
+        print("TWITTER AUTH TOKEN")
+        print(twitter_auth_token)
         if twitter_auth_token is None:
             twitter_auth_token = TwitterAuthToken(oauth_token=oauth_token, oauth_token_secret=oauth_token_secret)
             twitter_auth_token.save()
@@ -29,6 +34,7 @@ def twitter_login(request):
 
 
 def twitter_callback(request):
+    print("HERE")
     if 'denied' in request.GET:
         messages.add_message(request, messages.ERROR, 'Unable to login or login canceled. Please try again.')
         return render(request, 'server/error_page.html')
@@ -36,6 +42,7 @@ def twitter_callback(request):
     oauth_verifier = request.GET.get('oauth_verifier')
     oauth_token = request.GET.get('oauth_token')
     twitter_auth_token = TwitterAuthToken.objects.filter(oauth_token=oauth_token).first()
+    print("HERE")
     if twitter_auth_token is not None:
         access_token, access_token_secret = twitter_api.twitter_callback(oauth_verifier, oauth_token, twitter_auth_token.oauth_token_secret)
         if access_token is not None and access_token_secret is not None:
@@ -51,6 +58,7 @@ def twitter_callback(request):
                 user, twitter_user = create_update_user_from_twitter(twitter_user_new)
                 if user is not None:
                     login(request, user)
+
                     return redirect('index')
             else:
                 messages.add_message(request, messages.ERROR, 'Unable to get profile details. Please try again.')
@@ -75,7 +83,6 @@ def twitter_logout(request):
     return redirect('index')
 
 
-@login_required
 def index(request):
     return HttpResponse('文字だけアプリ改変テスト')
 
