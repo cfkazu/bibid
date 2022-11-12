@@ -2,3 +2,11 @@
 __pycache__/
 
 .env
+
+static/admin/css/
+
+static/admin/fonts/
+
+static/admin/img/
+
+static/admin/js/
