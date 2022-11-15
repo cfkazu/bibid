@@ -10,3 +10,11 @@ static/admin/fonts/
 static/admin/img/
 
 static/admin/js/
+
+media/
+
+server/migrations/
+
+bak.sqlite3
+
+bakbak.sqlite3

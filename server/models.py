@@ -20,3 +20,17 @@ class TwitterUser(models.Model):
 
     def __str__(self):
         return self.screen_name
+
+
+class ImageModel(models.Model):
+    author_id = models.ForeignKey('auth.User', on_delete=models.CASCADE)
+    #author_id = models.IntegerField()
+    title = models.CharField(max_length=30)
+    image = models.ImageField(upload_to='')
+    prompt = models.TextField(default="入力されていません")
+    neg_prompt = models.TextField(default="入力されていません")
+    additonal_tags = models.TextField(default="入力されていません")
+    decription = models.TextField()
+    good = models.IntegerField(default=0)
+    is_nsfw = models.IntegerField(default=False)
+    seed = models.IntegerField(default=-1)
