@@ -1,8 +1,13 @@
 from django.contrib.auth.models import User
-from twitter_api.twitter_api import TwitterAPI
-from .models import TwitterUser
 from rest_framework import authentication, exceptions
 from rest_framework.authtoken.models import Token
+
+from twitter_api.twitter_api import TwitterAPI
+
+from .models import TwitterUser
+
+# TODO: ユーザの自己紹介欄をどこかに作る:LastName?150字までだけどどうにかなるか？
+# TODO: ユーザのidをもとにユーザ情報を返す。mypageとかで使う
 
 
 def create_update_user_from_twitter(twitter_user_new):

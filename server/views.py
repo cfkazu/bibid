@@ -18,7 +18,7 @@ from rest_framework.authtoken.models import Token
 from rest_framework.views import APIView
 from .authorization import ExampleAuthentication
 from rest_framework.permissions import IsAuthenticated
-from .serializers import ImageSerializer
+from .serializers import ImageSerializer, UserTwitterSerializer
 from django.contrib.auth.models import User
 from django.db.models import Q
 from rest_framework.pagination import PageNumberPagination
@@ -174,9 +174,11 @@ def twitter_login(request):
         print(twitter_auth_token)
         if twitter_auth_token is None:
             twitter_auth_token = TwitterAuthToken(oauth_token=oauth_token, oauth_token_secret=oauth_token_secret)
+
             twitter_auth_token.save()
         else:
             twitter_auth_token.oauth_token_secret = oauth_token_secret
+
             twitter_auth_token.save()
         print("REDIRECT")
         print(url)
@@ -199,6 +201,7 @@ def twitter_callback(request):
         if access_token is not None and access_token_secret is not None:
             twitter_auth_token.oauth_token = access_token
             twitter_auth_token.oauth_token_secret = access_token_secret
+            TwitterAuthToken.objects.filter(oauth_token=access_token).delete()
             twitter_auth_token.save()
             # Create user
             info = twitter_api.get_me(access_token, access_token_secret)
