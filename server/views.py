@@ -24,6 +24,22 @@ from django.db.models import Q
 from rest_framework.pagination import PageNumberPagination
 
 
+class UserTwitter(generics.RetrieveAPIView):
+    queryset = User.objects.all()
+    serializer_class = UserTwitterSerializer
+
+    def get(self, request, pk):
+        user = User.objects.filter(id=pk).select_related("twitteruser").first()
+
+        data = {
+            "screenname":  user.twitteruser.screen_name,
+            "profile_image_url": user.twitteruser.profile_image_url,
+            "last_name": user.last_name,
+
+        }
+        return JsonResponse(data)
+
+
 class StandardResultsSetPagination(PageNumberPagination):
     page_size = 10
     page_size_query_param = 'page_size'
@@ -35,7 +51,8 @@ class ImageSearchBytag(generics.ListAPIView):
     pagination_class = StandardResultsSetPagination
 
     def get_queryset(self):
-        queryset = ImageModel.objects.all()
+
+        queryset = ImageModel.objects.select_related("author_id")
         limit = self.request.query_params.get('limit')
         word = self.request.query_params.get('word')
         order = self.request.query_params.get('order')
@@ -55,6 +72,8 @@ class ImageSearchBytag(generics.ListAPIView):
             )
         if order == "new":
             queryset = queryset.order_by('id').reverse()
+        else:
+            queryset = queryset.order_by('id')
         if limit is not None:
             queryset = queryset[:int(limit)]
 

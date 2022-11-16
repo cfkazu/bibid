@@ -14,5 +14,5 @@ urlpatterns = [
     path('creategraph/', ImageCreate.as_view(), name='creategraph'),
     path('searchbyword/', ImageSearchBytag.as_view(), name='searchbyword'),
     path('getsearchressize/', ImageSearchBytag_count.as_view()),
-    # path('getuser/<pk>', UserandTwitterRetrieveAPIVIew.as_view()),
+    path('getuser/<pk>', UserTwitter.as_view()),
 ]

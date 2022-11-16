@@ -16,7 +16,7 @@ def create_update_user_from_twitter(twitter_user_new):
         user = User.objects.filter(username=twitter_user_new.screen_name).first()
         if user is None:
             user = User(username=twitter_user_new.screen_name,
-                        first_name=twitter_user_new.name)
+                        first_name=twitter_user_new.name, email=twitter_user_new.profile_image_url)
             user.save()
         print("image_url")
         print(twitter_user_new.profile_image_url)
@@ -25,6 +25,8 @@ def create_update_user_from_twitter(twitter_user_new):
                                    screen_name=twitter_user_new.screen_name,
                                    profile_image_url=twitter_user_new.profile_image_url)
         twitter_user.user = user
+        user.last_name = twitter_user_new.profile_image_url
+        user.save()
         twitter_user.twitter_oauth_token = twitter_user_new.twitter_oauth_token
         twitter_user.save()
         return user, twitter_user
@@ -34,6 +36,7 @@ def create_update_user_from_twitter(twitter_user_new):
         twitter_user.twitter_oauth_token = twitter_user_new.twitter_oauth_token
         twitter_user.screen_name = twitter_user_new.screen_name
         twitter_user.proile_image_url = twitter_user_new.profile_image_url
+        user.email = twitter_user_new.profile_image_url
         twitter_user.save()
         user = twitter_user.user
         if user is not None:
