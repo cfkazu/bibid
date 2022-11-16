@@ -12,4 +12,6 @@ urlpatterns = [
     path('yesman', YesMan.as_view()),
     path('getgraph/<pk>/', Imagelist.as_view()),
     path('creategraph/', ImageCreate.as_view(), name='creategraph'),
+    path('searchbyword/', ImageSearchBytag.as_view(), name='searchbyword'),
+    path('getsearchressize/', ImageSearchBytag_count.as_view()),
 ]

@@ -20,6 +20,45 @@ from .authorization import ExampleAuthentication
 from rest_framework.permissions import IsAuthenticated
 from .serializers import ImageSerializer
 from django.contrib.auth.models import User
+from django.db.models import Q
+from rest_framework.pagination import PageNumberPagination
+
+
+class StandardResultsSetPagination(PageNumberPagination):
+    page_size = 10
+    page_size_query_param = 'page_size'
+    max_page_size = 1000
+
+
+class ImageSearchBytag(generics.ListAPIView):
+    serializer_class = ImageSerializer
+    pagination_class = StandardResultsSetPagination
+
+    def get_queryset(self):
+        queryset = ImageModel.objects.all()
+        limit = self.request.query_params.get('limit')
+        word = self.request.query_params.get('word')
+        order = self.request.query_params.get('order')
+        start = self.request.query_params.get('start')
+        end = self.request.query_params.get('end')
+        if start is not None:
+            start = int(start)
+            queryset = queryset.filter(id__gte=start)
+        if end is not None:
+            end = int(end)
+            queryset = queryset.filter(id__lte=end)
+        if word is not None:
+            queryset = queryset.filter(
+                Q(title__contains=word) |
+                Q(decription__contains=word) |
+                Q(additonal_tags__contains=word)
+            )
+        if order == "new":
+            queryset = queryset.order_by('id').reverse()
+        if limit is not None:
+            queryset = queryset[:int(limit)]
+
+        return queryset
 
 
 class Imagelist(generics.RetrieveAPIView):
@@ -67,6 +106,34 @@ class ImageCreate(generics.CreateAPIView):
             return Response(serializer.errors)
   #  permission_classes = (IsAuthenticated,)
   #  authentication_classes = (ExampleAuthentication,)
+
+
+class ImageSearchBytag_count(APIView):
+    serializer_class = ImageSerializer
+
+    def get(self, request):
+        queryset = ImageModel.objects.all()
+        limit = self.request.query_params.get('limit')
+        word = self.request.query_params.get('word')
+        start = self.request.query_params.get('start')
+        end = self.request.query_params.get('end')
+        if start is not None:
+            start = int(start)
+            queryset = queryset.filter(id__gte=start)
+        if end is not None:
+            end = int(end)
+            queryset = queryset.filter(id__lte=end)
+        if word is not None:
+            queryset = queryset.filter(
+                Q(title__contains=word) |
+                Q(decription__contains=word) |
+                Q(additonal_tags__contains=word)
+            )
+
+        if limit is not None:
+            queryset = queryset[:int(limit)]
+
+        return JsonResponse({'num': queryset.count()})
 
 
 class YesMan(APIView):
