@@ -35,7 +35,8 @@ ALLOWED_HOSTS = env.list('ALLOWED_HOSTS')
 # Application definition
 
 INSTALLED_APPS = [
-    'server',
+    # 'server',
+    'server.apps.ServerConfig',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -53,8 +54,6 @@ INSTALLED_APPS = [
     'dj_rest_auth.registration',
     'allauth.socialaccount',
     'allauth.socialaccount.providers.twitter',
-
-
 
 
 ]
@@ -147,3 +146,4 @@ CORS_ORIGIN_WHITELIST = [
 CORS_ALLOW_HEADERS = list(default_headers)+['X-AUTH-TOKEN']
 MEDIA＿ROOT = os.path.join(BASE_DIR, 'media')
 MEDIA_URL = '/media/'
+AUTH_USER_MODEL = 'server.CustomUser'

@@ -5,7 +5,7 @@ from django.contrib.auth import login, logout
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect
 from .decorators import twitter_login_required
-from .models import TwitterAuthToken, TwitterUser, ImageModel
+from .models import *
 from .authorization import create_update_user_from_twitter, check_token_still_valid
 from twitter_api.twitter_api import TwitterAPI
 from rest_framework import generics, permissions
@@ -18,18 +18,40 @@ from rest_framework.authtoken.models import Token
 from rest_framework.views import APIView
 from .authorization import ExampleAuthentication
 from rest_framework.permissions import IsAuthenticated
-from .serializers import ImageSerializer, UserTwitterSerializer
-from django.contrib.auth.models import User
+from .serializers import *
+#from django.contrib.auth.models import User
+from .models import CustomUser
 from django.db.models import Q
 from rest_framework.pagination import PageNumberPagination
 
 
+class ImageRetriveFromUserid(generics.ListAPIView):
+    serializer_class = ImageSerializer
+    pagination_class = PageNumberPagination
+
+    def get_queryset(self):
+        queryset = ImageModel.objects.all()
+        limit = self.request.query_params.get('limit')
+        user_id = self.request.query_params.get('user_id')
+
+        if user_id is not None:
+            queryset = queryset.filter(author_id_id=user_id)
+        if limit is not None:
+            queryset = queryset[:int(limit)]
+        return queryset
+
+
+class UserRetrieve(generics.RetrieveAPIView):
+    queryset = CustomUser.objects.all()
+    serializer_class = UserSerializer
+
+
 class UserTwitter(generics.RetrieveAPIView):
-    queryset = User.objects.all()
+    queryset = CustomUser.objects.all()
     serializer_class = UserTwitterSerializer
 
     def get(self, request, pk):
-        user = User.objects.filter(id=pk).select_related("twitteruser").first()
+        user = CustomUser.objects.filter(id=pk).select_related("twitteruser").first()
 
         data = {
             "screenname":  user.twitteruser.screen_name,
@@ -46,18 +68,19 @@ class StandardResultsSetPagination(PageNumberPagination):
     max_page_size = 1000
 
 
-class ImageSearchBytag(generics.ListAPIView):
+class ImageSearchBytag_nopage(generics.ListAPIView):
     serializer_class = ImageSerializer
-    pagination_class = StandardResultsSetPagination
 
     def get_queryset(self):
-
         queryset = ImageModel.objects.select_related("author_id")
         limit = self.request.query_params.get('limit')
         word = self.request.query_params.get('word')
         order = self.request.query_params.get('order')
         start = self.request.query_params.get('start')
         end = self.request.query_params.get('end')
+        author_id = self.request.query_params.get('author_id')
+        if author_id is not None:
+            queryset = queryset.filter(author_id_id=author_id)
         if start is not None:
             start = int(start)
             queryset = queryset.filter(id__gte=start)
@@ -78,6 +101,148 @@ class ImageSearchBytag(generics.ListAPIView):
             queryset = queryset[:int(limit)]
 
         return queryset
+
+
+class ImageSearchBytag(generics.ListAPIView):
+    serializer_class = ImageSerializer
+    pagination_class = StandardResultsSetPagination
+
+    def get_queryset(self):
+        queryset = ImageModel.objects.select_related("author_id")
+        limit = self.request.query_params.get('limit')
+        word = self.request.query_params.get('word')
+        order = self.request.query_params.get('order')
+        start = self.request.query_params.get('start')
+        end = self.request.query_params.get('end')
+        author_id = self.request.query_params.get('author_id')
+        if author_id is not None:
+            queryset = queryset.filter(author_id_id=author_id)
+        if start is not None:
+            start = int(start)
+            queryset = queryset.filter(id__gte=start)
+        if end is not None:
+            end = int(end)
+            queryset = queryset.filter(id__lte=end)
+        if word is not None:
+            queryset = queryset.filter(
+                Q(title__contains=word) |
+                Q(decription__contains=word) |
+                Q(additonal_tags__contains=word) |
+                Q(prompt__contains=word) |
+                Q(neg_prompt__contains=word)
+            )
+        if order == "new":
+            queryset = queryset.order_by('id').reverse()
+        else:
+            queryset = queryset.order_by('id')
+        if limit is not None:
+            queryset = queryset[:int(limit)]
+
+        return queryset
+
+
+class UserFavRetriveView(generics.RetrieveAPIView):
+    serializer_class = UserFavSerializer
+    queryset = CustomUser.objects.all()
+
+    def get_queryset(self):
+        user = CustomUser.objects.filter(id=self.kwargs['pk']).prefetch_related("fav")
+        print(user.values('id', 'username', 'first_name', 'fav', 'description', 'profile_url'))
+        return user
+
+
+class GetFavorite(generics.ListAPIView):
+    authentication_classes = (ExampleAuthentication,)        # 追加
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request):
+        data = {}
+        user = request.user
+        for fav in user.fav.all():
+            data[fav.image.id] = fav.image.title
+        return JsonResponse(data)
+
+
+class GetFavoritebyAuthorId(APIView):
+    authentication_classes = (ExampleAuthentication,)        # 追加
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request, pk):
+        user = request.user
+        data = {}
+        # print(vars(user))
+        for fav in user.fav.all():
+            if int(fav.image.author_id_id) == int(pk):
+                data[fav.image.id] = fav.image.title
+        return JsonResponse(data)
+
+
+class MyFollow(APIView):
+    authentication_classes = (ExampleAuthentication,)        # 追加
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request):
+        user = request.user
+        data = {}
+        for follow in user.following_user.all():
+            data[follow.followed_user.id] = True
+        return JsonResponse(data)
+
+
+class Follow(APIView):
+    authentication_classes = (ExampleAuthentication,)
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request, pk):
+        user = request.user
+        followed_user = CustomUser.objects.get(id=pk)
+        myfollow = FollowUser(followed_user=followed_user, following_user=user)
+        if FollowUser.objects.filter(followed_user=followed_user, following_user=user).exists():
+            return JsonResponse({"status": "already exists"})
+        myfollow.save()
+        return HttpResponse(status=200)
+
+
+class UnFollow(APIView):
+    authentication_classes = (ExampleAuthentication,)
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request, pk):
+        user = request.user
+        followed_user = CustomUser.objects.get(id=pk)
+        myfollow = FollowUser.objects.filter(followed_user=followed_user, following_user=user)
+        myfollow.delete()
+        return HttpResponse(status=200)
+
+
+class FavCreateView(APIView):
+    authentication_classes = (ExampleAuthentication,)
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request, pk):
+        user = request.user
+        image = ImageModel.objects.get(id=pk)
+        if (FavImage.objects.filter(image=image, user=user).exists()):
+            return JsonResponse({"message": "already exist"})
+        fav = FavImage(user=user, image=image)
+        fav.save()
+        image.good += 1
+        image.save()
+        return HttpResponse(status=200)
+
+
+class FavDeleteView(APIView):
+    authentication_classes = (ExampleAuthentication,)
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request, pk):
+        user = request.user
+        image = ImageModel.objects.get(id=pk)
+        fav = FavImage.objects.get(user=user, image=image)
+        fav.delete()
+        image.good -= 1
+        image.save()
+        return HttpResponse(status=200)
 
 
 class Imagelist(generics.RetrieveAPIView):

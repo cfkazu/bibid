@@ -1,6 +1,12 @@
 from django.contrib.auth.models import User
 from rest_framework import serializers
-from .models import ImageModel, TwitterUser
+from .models import *
+
+
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CustomUser
+        fields = ('id', 'username', 'first_name', 'last_name', 'description', 'profile_url')
 
 
 class TwitterSerializer(serializers.ModelSerializer):
@@ -14,8 +20,8 @@ class UserTwitterSerializer(serializers.ModelSerializer):
     image = serializers.PrimaryKeyRelatedField(many=False, read_only=True)
 
     class Meta:
-        model = User
-        fields = ('id', 'username', 'email', 'last_name', 'first_name', 'twitter', 'image')
+        model = CustomUser
+        fields = ('id', 'username', 'first_name', 'twitter', 'image', 'profile_url', 'description')
 
 
 class ImageSerializer(serializers.ModelSerializer):
@@ -24,4 +30,36 @@ class ImageSerializer(serializers.ModelSerializer):
     class Meta:
         model = ImageModel
      #   fields = ('id', 'title', 'image', 'prompt', 'neg_prompt', 'additonal_tags', 'decription', 'good', 'author_id_id', 'is_nsfw', 'seed', 'author')
+        fields = '__all__'
+
+
+class FavSerializer(serializers.ModelSerializer):
+    image = ImageSerializer()
+    user = UserSerializer()
+
+    class Meta:
+        model = FavImage
+        fields = ('id', 'image', 'user')
+
+
+class FavOidSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = FavImage
+        fields = ('image',)
+
+
+class UserFavSerializer(serializers.ModelSerializer):
+    fav = FavOidSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = CustomUser
+        fields = ('id', 'username', 'first_name', 'fav', 'profile_url', 'description')
+
+
+class FollowUserSerializer(serializers.ModelSerializer):
+    followed_user = UserSerializer()
+    follower_user = UserSerializer()
+
+    class Meta:
+        model = FollowUser
         fields = '__all__'

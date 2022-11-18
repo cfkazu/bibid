@@ -1,6 +1,8 @@
 from django.db import models
 # Create your models here.
 
+from django.contrib.auth.models import AbstractUser
+
 
 class TwitterAuthToken(models.Model):
     oauth_token = models.CharField(max_length=255, null=True)
@@ -16,14 +18,14 @@ class TwitterUser(models.Model):
     name = models.CharField(max_length=255)
     profile_image_url = models.CharField(max_length=255, null=True)
     twitter_oauth_token = models.ForeignKey(TwitterAuthToken, on_delete=models.CASCADE)
-    user = models.OneToOneField('auth.User', on_delete=models.CASCADE)
+    user = models.OneToOneField('CustomUser', on_delete=models.CASCADE)
 
     def __str__(self):
         return self.screen_name
 
 
 class ImageModel(models.Model):
-    author_id = models.ForeignKey('auth.User', on_delete=models.CASCADE)
+    author_id = models.ForeignKey('CustomUser', on_delete=models.CASCADE)
     #author_id = models.IntegerField()
     title = models.CharField(max_length=30)
     image = models.ImageField(upload_to='')
@@ -34,3 +36,19 @@ class ImageModel(models.Model):
     good = models.IntegerField(default=0)
     is_nsfw = models.IntegerField(default=False)
     seed = models.IntegerField(default=-1)
+
+
+class CustomUser(AbstractUser):
+    profile_url = models.CharField(max_length=150, null=True)
+    description = models.TextField(null=True)
+    pass
+
+
+class FavImage(models.Model):
+    image = models.ForeignKey(ImageModel, on_delete=models.CASCADE)
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='fav')
+
+
+class FollowUser(models.Model):
+    followed_user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='followed_user')
+    following_user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='following_user')
