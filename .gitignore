@@ -1,5 +1,5 @@
 
-__pycache__/
+
 
 .env
 
@@ -13,7 +13,7 @@ static/admin/js/
 
 media/
 
-server/migrations/
+
 
 bak.sqlite3
 
