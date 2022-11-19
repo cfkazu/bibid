@@ -143,7 +143,7 @@ CORS_ORIGIN_WHITELIST = env.list('CORS_ORIGIN_WHITELIST')
 CORS_ALLOW_HEADERS = list(default_headers)+['X-AUTH-TOKEN']
 
 AUTH_USER_MODEL = 'server.CustomUser'
-if DEBUG:
+if DEBUG == "True":
     STATIC_ROOT = os.path.join(BASE_DIR, 'static')
     STATIC_URL = '/static/'
     MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
