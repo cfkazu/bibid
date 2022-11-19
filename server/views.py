@@ -439,7 +439,7 @@ def twitter_logout(request):
 
 
 def index(request):
-    return HttpResponse('文字だけアプリ改変テスト')
+    return HttpResponse('文字だけアプリ')
 
 
 @login_required
