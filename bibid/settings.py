@@ -139,10 +139,7 @@ USE_TZ = True
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 LOGIN_URL = '/server/twitter_login/'
-CORS_ORIGIN_WHITELIST = [
-    'http://127.0.0.1:8080',
-    'http://localhost:8080',
-]
+CORS_ORIGIN_WHITELIST = env.list('CORS_ORIGIN_WHITELIST')
 CORS_ALLOW_HEADERS = list(default_headers)+['X-AUTH-TOKEN']
 
 AUTH_USER_MODEL = 'server.CustomUser'
