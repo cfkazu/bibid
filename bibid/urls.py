@@ -10,4 +10,6 @@ urlpatterns = [
     #   path('admin/', admin.site.urls),
     re_path(r'^dj-rest-auth/', include('dj_rest_auth.urls')),
     re_path(r'^dj-rest-auth/twitter/$', TwitterLogin.as_view(), name='twitter_login'),
-] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+]
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

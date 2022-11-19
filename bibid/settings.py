@@ -132,8 +132,8 @@ USE_TZ = True
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.1/howto/static-files/
-STATIC_URL = '/static/'
-STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+
+
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.1/ref/settings/#default-auto-field
 
@@ -144,6 +144,21 @@ CORS_ORIGIN_WHITELIST = [
     'http://localhost:8080',
 ]
 CORS_ALLOW_HEADERS = list(default_headers)+['X-AUTH-TOKEN']
-MEDIA＿ROOT = os.path.join(BASE_DIR, 'media')
-MEDIA_URL = '/media/'
+
 AUTH_USER_MODEL = 'server.CustomUser'
+if DEBUG:
+    STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+    STATIC_URL = '/static/'
+    MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+    MEDIA_URL = '/media/'
+else:
+    STATICFILES_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
+    STATICFILES_DIRS = (
+        os.path.join(BASE_DIR, "static"),
+    )
+    DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
+    AWS_ACCESS_KEY_ID = env('AWS_ACCESS_KEY_ID')
+    AWS_SECRET_ACCESS_KEY = env('AWS_SECRET_ACCESS_KEY')
+    AWS_STORAGE_BUCKET_NAME = env('AWS_STORAGE_BUCKET_NAME')
+    AWS_LOCATION = 'static'
+    STATIC_URL = env('STATIC_URL')
