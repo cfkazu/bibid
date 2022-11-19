@@ -77,44 +77,11 @@ class ImageSearchBytag_nopage(generics.ListAPIView):
         word = self.request.query_params.get('word')
         order = self.request.query_params.get('order')
         start = self.request.query_params.get('start')
+        nsfw = self.request.query_params.get('nsfw')
         end = self.request.query_params.get('end')
         author_id = self.request.query_params.get('author_id')
-        if author_id is not None:
-            queryset = queryset.filter(author_id_id=author_id)
-        if start is not None:
-            start = int(start)
-            queryset = queryset.filter(id__gte=start)
-        if end is not None:
-            end = int(end)
-            queryset = queryset.filter(id__lte=end)
-        if word is not None:
-            queryset = queryset.filter(
-                Q(title__contains=word) |
-                Q(decription__contains=word) |
-                Q(additonal_tags__contains=word)
-            )
-        if order == "new":
-            queryset = queryset.order_by('id').reverse()
-        else:
-            queryset = queryset.order_by('id')
-        if limit is not None:
-            queryset = queryset[:int(limit)]
-
-        return queryset
-
-
-class ImageSearchBytag(generics.ListAPIView):
-    serializer_class = ImageSerializer
-    pagination_class = StandardResultsSetPagination
-
-    def get_queryset(self):
-        queryset = ImageModel.objects.select_related("author_id")
-        limit = self.request.query_params.get('limit')
-        word = self.request.query_params.get('word')
-        order = self.request.query_params.get('order')
-        start = self.request.query_params.get('start')
-        end = self.request.query_params.get('end')
-        author_id = self.request.query_params.get('author_id')
+        if nsfw is not None and nsfw != "-1":
+            queryset = queryset.filter(is_nsfw=nsfw)
         if author_id is not None:
             queryset = queryset.filter(author_id_id=author_id)
         if start is not None:
@@ -133,6 +100,51 @@ class ImageSearchBytag(generics.ListAPIView):
             )
         if order == "new":
             queryset = queryset.order_by('id').reverse()
+        elif order == "popular":
+            queryset = queryset.order_by('good').reverse()
+        else:
+            queryset = queryset.order_by('id')
+        if limit is not None:
+            queryset = queryset[:int(limit)]
+
+        return queryset
+
+
+class ImageSearchBytag(generics.ListAPIView):
+    serializer_class = ImageSerializer
+    pagination_class = StandardResultsSetPagination
+
+    def get_queryset(self):
+        queryset = ImageModel.objects.select_related("author_id")
+        limit = self.request.query_params.get('limit')
+        word = self.request.query_params.get('word')
+        order = self.request.query_params.get('order')
+        start = self.request.query_params.get('start')
+        nsfw = self.request.query_params.get('nsfw')
+        end = self.request.query_params.get('end')
+        author_id = self.request.query_params.get('author_id')
+        if nsfw is not None and nsfw != "-1":
+            queryset = queryset.filter(is_nsfw=nsfw)
+        if author_id is not None:
+            queryset = queryset.filter(author_id_id=author_id)
+        if start is not None:
+            start = int(start)
+            queryset = queryset.filter(id__gte=start)
+        if end is not None:
+            end = int(end)
+            queryset = queryset.filter(id__lte=end)
+        if word is not None:
+            queryset = queryset.filter(
+                Q(title__contains=word) |
+                Q(decription__contains=word) |
+                Q(additonal_tags__contains=word) |
+                Q(prompt__contains=word) |
+                Q(neg_prompt__contains=word)
+            )
+        if order == "new":
+            queryset = queryset.order_by('id').reverse()
+        elif order == "popular":
+            queryset = queryset.order_by('good').reverse()
         else:
             queryset = queryset.order_by('id')
         if limit is not None:
