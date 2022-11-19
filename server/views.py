@@ -23,7 +23,7 @@ from .serializers import *
 from .models import CustomUser
 from django.db.models import Q
 from rest_framework.pagination import PageNumberPagination
-
+from django.conf import settings
 
 class ImageRetriveFromUserid(generics.ListAPIView):
     serializer_class = ImageSerializer
@@ -410,19 +410,19 @@ def twitter_callback(request):
                 user, twitter_user = create_update_user_from_twitter(twitter_user_new)
                 if user is not None:
                     token, res = Token.objects.get_or_create(user=user)
-                    return redirect("http://localhost:8080/#/about/?t="+token.key+"&id="+str(user.id))
+                    return redirect(settings.REDIRECT+"/#/about/?t="+token.key+"&id="+str(user.id))
                     return JsonResponse({'token': token.key})
             else:
                 messages.add_message(request, messages.ERROR, 'Unable to get profile details. Please try again.')
-                return redirect('http://localhost:8080')
+                return redirect(settings.REDIRECT)
        # return render(request, 'server/error_page.html')
         else:
             messages.add_message(request, messages.ERROR, 'Unable to get access token. Please try again.')
-            return redirect('http://localhost:8080')
+            return redirect(settings.REDIRECT)
        # return render(request, 'server/error_page.html')
     else:
         messages.add_message(request, messages.ERROR, 'Unable to retrieve access token. Please try again.')
-        return redirect('http://localhost:8080')
+        return redirect(settings.REDIRECT)
        # return render(request, 'server/error_page.html')
 
 

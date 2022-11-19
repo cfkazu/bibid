@@ -141,7 +141,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 LOGIN_URL = '/server/twitter_login/'
 CORS_ORIGIN_WHITELIST = env.list('CORS_ORIGIN_WHITELIST')
 CORS_ALLOW_HEADERS = list(default_headers)+['X-AUTH-TOKEN']
-
+REDIRECT = env('REDIRECT')
 AUTH_USER_MODEL = 'server.CustomUser'
 if DEBUG == "True":
     STATIC_ROOT = os.path.join(BASE_DIR, 'static')
