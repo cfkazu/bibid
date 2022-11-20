@@ -332,6 +332,8 @@ class ImageCreate(generics.CreateAPIView):
             request.data['neg_prompt'] = "入力がありません。"
         if request.data['additonal_tags'] == "undefined":
             request.data['additonal_tags'] = ""
+        if request.data['descripton'] == "undefined":
+            request.data['descripton'] = ""
         else:
             tags = [None, None, None, None, None, None, None, None, None, None]
             buf_tags = request.data['additonal_tags'].split(',')
