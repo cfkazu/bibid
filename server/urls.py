@@ -11,6 +11,7 @@ urlpatterns = [
     path('islogin', views.is_login, name='islogin'),
     path('yesman', YesMan.as_view()),
     path('getgraph/<pk>/', Imagelist.as_view()),
+    path('deletegraph/<pk>', ImageDelete.as_view()),
     path('creategraph/', ImageCreate.as_view(), name='creategraph'),
     path('searchbyword/', ImageSearchBytag.as_view(), name='searchbyword'),
     path('searchbyword_nopage/', ImageSearchBytag_nopage.as_view(), name='searchbyword_nopage'),

@@ -303,6 +303,24 @@ class Imagelist(generics.RetrieveAPIView):
     queryset = ImageModel.objects.all()
 
 
+class ImageDelete(APIView):
+    serializer_class = ImageSerializer
+    queryset = ImageModel.objects.all()
+    authentication_classes = (ExampleAuthentication,)
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request, pk):
+        image = ImageModel.objects.get(id=pk)
+        if image.author_id != request.user:
+
+
+x
+            return HttpResponse(status=401)
+
+        image.delete()
+        return HttpResponse(status=200)
+
+
 class ImageCreate(generics.CreateAPIView):
     serializer_class = ImageSerializer
     queryset = ImageModel.objects.all()
