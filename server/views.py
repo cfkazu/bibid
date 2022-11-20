@@ -338,6 +338,7 @@ class ImageCreate(generics.CreateAPIView):
             for i, tag in enumerate(buf_tags):
                 if (tag == ""):
                     continue
+                tag = tag.replace("#", "")
                 tags[i] = tag
         newimg = ImageModel(title=request.data['title'], image=request.data['image'],
                             prompt=request.data['prompt'], neg_prompt=request.data['neg_prompt'], additonal_tags=request.data['additonal_tags'],
