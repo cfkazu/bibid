@@ -312,9 +312,6 @@ class ImageDelete(APIView):
     def get(self, request, pk):
         image = ImageModel.objects.get(id=pk)
         if image.author_id != request.user:
-
-
-x
             return HttpResponse(status=401)
 
         image.delete()
