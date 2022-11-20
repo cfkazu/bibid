@@ -345,6 +345,7 @@ class ImageCreate(generics.CreateAPIView):
         if request.data['decription'] == "undefined":
             request.data['decription'] = ""
 
+        request.data['image']._name = request.data['image'].name+str(ImageModel.objects.all().count())
         newimg = ImageModel(title=request.data['title'], image=request.data['image'],
                             prompt=request.data['prompt'], neg_prompt=request.data['neg_prompt'], additonal_tags=request.data['additonal_tags'],
                             decription=request.data['decription'], good=request.data['good'], is_nsfw=request.data['is_nsfw'], seed=request.data['seed'],
