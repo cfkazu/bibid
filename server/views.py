@@ -330,18 +330,21 @@ class ImageCreate(generics.CreateAPIView):
             request.data['prompt'] = "入力がありません。"
         if request.data['neg_prompt'] == "undefined":
             request.data['neg_prompt'] = "入力がありません。"
+        tags = [None, None, None, None, None, None, None, None, None, None]
         if request.data['additonal_tags'] == "undefined":
             request.data['additonal_tags'] = ""
-        if request.data['description'] == "undefined":
-            request.data['description'] = ""
         else:
-            tags = [None, None, None, None, None, None, None, None, None, None]
+
             buf_tags = request.data['additonal_tags'].split(',')
             for i, tag in enumerate(buf_tags):
                 if (tag == ""):
                     continue
-                tag = tag.replace("#", "")
+                if tag is not None:
+                    tag = tag.replace("#", "")
                 tags[i] = tag
+        if request.data['decription'] == "undefined":
+            request.data['decription'] = ""
+
         newimg = ImageModel(title=request.data['title'], image=request.data['image'],
                             prompt=request.data['prompt'], neg_prompt=request.data['neg_prompt'], additonal_tags=request.data['additonal_tags'],
                             decription=request.data['decription'], good=request.data['good'], is_nsfw=request.data['is_nsfw'], seed=request.data['seed'],
