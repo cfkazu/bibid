@@ -16,6 +16,7 @@ urlpatterns = [
     path('searchbyword_nopage/', ImageSearchBytag_nopage.as_view(), name='searchbyword_nopage'),
     path('getsearchressize/', ImageSearchBytag_count.as_view()),
     path('getuser/<pk>', UserRetrieve.as_view()),
+    path('modifyme/', UpdateMyInfo.as_view()),
     path('getImagebyUserid/', ImageRetriveFromUserid.as_view()),
     path('fav/<pk>', FavCreateView.as_view()),
     path('delfav/<pk>', FavDeleteView.as_view()),
@@ -25,4 +26,6 @@ urlpatterns = [
     path('getfollowing/', MyFollow.as_view()),
     path('follow/<pk>', Follow.as_view()),
     path('unfollow/<pk>', UnFollow.as_view()),
+    path('makecomment/', CommentCreate.as_view()),
+    path('getcomment/<pk>', GetImageComment.as_view()),
 ]

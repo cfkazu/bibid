@@ -19,11 +19,12 @@ from rest_framework.views import APIView
 from .authorization import ExampleAuthentication
 from rest_framework.permissions import IsAuthenticated
 from .serializers import *
-#from django.contrib.auth.models import User
+# from django.contrib.auth.models import User
 from .models import CustomUser
 from django.db.models import Q
 from rest_framework.pagination import PageNumberPagination
 from django.conf import settings
+
 
 class ImageRetriveFromUserid(generics.ListAPIView):
     serializer_class = ImageSerializer
@@ -102,11 +103,18 @@ class ImageSearchBytag_nopage(generics.ListAPIView):
             queryset = queryset.order_by('id').reverse()
         elif order == "popular":
             queryset = queryset.order_by('good').reverse()
+        elif order == "today_popular":
+            queryset = queryset.order_by('today_good').reverse()
+        elif order == "today_popular_looked":
+            queryset = queryset.order_by('today_looked').reverse()
+        elif order == "hour_popular":
+            queryset = queryset.order_by('hour_good').reverse()
+        elif order == "hour_popular_looked":
+            queryset = queryset.order_by('hour_looked').reverse()
         else:
             queryset = queryset.order_by('id')
         if limit is not None:
             queryset = queryset[:int(limit)]
-
         return queryset
 
 
@@ -145,11 +153,18 @@ class ImageSearchBytag(generics.ListAPIView):
             queryset = queryset.order_by('id').reverse()
         elif order == "popular":
             queryset = queryset.order_by('good').reverse()
+        elif order == "today_popular":
+            queryset = queryset.order_by('today_good').reverse()
+        elif order == "today_popular_looked":
+            queryset = queryset.order_by('today_looked').reverse()
+        elif order == "hour_popular":
+            queryset = queryset.order_by('hour_good').reverse()
+        elif order == "hour_popular_looked":
+            queryset = queryset.order_by('hour_looked').reverse()
         else:
             queryset = queryset.order_by('id')
         if limit is not None:
             queryset = queryset[:int(limit)]
-
         return queryset
 
 
@@ -239,6 +254,8 @@ class FavCreateView(APIView):
         fav = FavImage(user=user, image=image)
         fav.save()
         image.good += 1
+        image.today_good += 1
+        image.hour_good += 1
         image.save()
         return HttpResponse(status=200)
 
@@ -255,6 +272,30 @@ class FavDeleteView(APIView):
         image.good -= 1
         image.save()
         return HttpResponse(status=200)
+
+
+class CommentCreate(generics.CreateAPIView):
+    serializer_class = CommentSerializer
+    queryset = CommentImage.objects.all()
+    authentication_classes = (ExampleAuthentication,)
+    permission_classes = (IsAuthenticated,)
+
+    def post(self, request):
+        user = request.user
+        image = ImageModel.objects.get(id=request.data['image_id'])
+        comment = CommentImage(user=user, image=image, comment=request.data['comment'])
+        comment.save()
+        return HttpResponse(status=200)
+
+
+class GetImageComment(generics.ListAPIView):
+    serializer_class = CommentSerializer
+
+    def get_queryset(self):
+        pk = self.kwargs['pk']
+        image = ImageModel.objects.get(id=pk)
+        comments = image.comment_image.all().order_by('id').reverse()
+        return comments
 
 
 class Imagelist(generics.RetrieveAPIView):
@@ -276,9 +317,17 @@ class ImageCreate(generics.CreateAPIView):
             request.data['neg_prompt'] = "入力がありません。"
         if request.data['additonal_tags'] == "undefined":
             request.data['additonal_tags'] = ""
+        else:
+            tags = [None, None, None, None, None, None, None, None, None, None]
+            buf_tags = request.data['additonal_tags'].split(',')
+            for i, tag in enumerate(buf_tags):
+                if (tag == ""):
+                    continue
+                tags[i] = tag
         newimg = ImageModel(title=request.data['title'], image=request.data['image'],
                             prompt=request.data['prompt'], neg_prompt=request.data['neg_prompt'], additonal_tags=request.data['additonal_tags'],
-                            decription=request.data['decription'], good=request.data['good'], is_nsfw=request.data['is_nsfw'], seed=request.data['seed'])
+                            decription=request.data['decription'], good=request.data['good'], is_nsfw=request.data['is_nsfw'], seed=request.data['seed'],
+                            tag0=tags[0], tag1=tags[1], tag2=tags[2], tag3=tags[3], tag4=tags[4], tag5=tags[5], tag6=tags[6], tag7=tags[7], tag8=tags[8], tag9=tags[9])
         newimg.author_id_id = request.user.id
         newimg.save()
 
@@ -426,13 +475,30 @@ def twitter_callback(request):
        # return render(request, 'server/error_page.html')
 
 
-@login_required
-@twitter_login_required
+class UpdateMyInfo(APIView):
+    authentication_classes = (ExampleAuthentication,)        # 追加
+    permission_classes = (IsAuthenticated,)                  # 追加
+
+    def post(self, request, format=None):
+        user = request.user
+        new_description = request.data.get('description')
+        id = request.data.get('id')
+        print(new_description)
+        if id is None or id != user.id:
+            return JsonResponse({'message': 'id is not correct'})
+        if new_description is not None:
+            user.description = new_description
+        user.save()
+        return JsonResponse({'message': 'success'})
+
+
+@ login_required
+@ twitter_login_required
 def index(request):
     return render(request, 'server/home.html')
 
 
-@login_required
+@ login_required
 def twitter_logout(request):
     logout(request)
     return redirect('index')
@@ -442,7 +508,7 @@ def index(request):
     return HttpResponse('文字だけアプリ')
 
 
-@login_required
+@ login_required
 def tamesi(request):
   #  print("USER")
   #  print(vars(request))

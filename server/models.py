@@ -26,7 +26,7 @@ class TwitterUser(models.Model):
 
 class ImageModel(models.Model):
     author_id = models.ForeignKey('CustomUser', on_delete=models.CASCADE)
-    #author_id = models.IntegerField()
+    # author_id = models.IntegerField()
     title = models.CharField(max_length=30)
     image = models.ImageField(upload_to='')
     prompt = models.TextField(default="入力されていません")
@@ -36,11 +36,25 @@ class ImageModel(models.Model):
     good = models.IntegerField(default=0)
     is_nsfw = models.IntegerField(default=False)
     seed = models.IntegerField(default=-1)
+    today_looked = models.IntegerField(default=0)
+    today_good = models.IntegerField(default=0)
+    hour_looked = models.IntegerField(default=0)
+    hour_good = models.IntegerField(default=0)
+    tag0 = models.CharField(max_length=30, null=True)
+    tag1 = models.CharField(max_length=30, null=True)
+    tag2 = models.CharField(max_length=30, null=True)
+    tag3 = models.CharField(max_length=30, null=True)
+    tag4 = models.CharField(max_length=30, null=True)
+    tag5 = models.CharField(max_length=30, null=True)
+    tag6 = models.CharField(max_length=30, null=True)
+    tag7 = models.CharField(max_length=30, null=True)
+    tag8 = models.CharField(max_length=30, null=True)
+    tag9 = models.CharField(max_length=30, null=True)
 
 
 class CustomUser(AbstractUser):
     profile_url = models.CharField(max_length=150, null=True)
-    description = models.TextField(null=True)
+    description = models.TextField(default="よろしくお願いします。")
     pass
 
 
@@ -52,3 +66,9 @@ class FavImage(models.Model):
 class FollowUser(models.Model):
     followed_user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='followed_user')
     following_user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='following_user')
+
+
+class CommentImage(models.Model):
+    image = models.ForeignKey(ImageModel, on_delete=models.CASCADE, related_name='comment_image')
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='comment')
+    comment = models.TextField(null=False)
