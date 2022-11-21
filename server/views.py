@@ -24,6 +24,7 @@ from .models import CustomUser
 from django.db.models import Q
 from rest_framework.pagination import PageNumberPagination
 from django.conf import settings
+import re
 
 
 class ImageRetriveFromUserid(generics.ListAPIView):
@@ -34,11 +35,12 @@ class ImageRetriveFromUserid(generics.ListAPIView):
         queryset = ImageModel.objects.all()
         limit = self.request.query_params.get('limit')
         user_id = self.request.query_params.get('user_id')
-
+        queryset = queryset.order_by('id').reverse()
         if user_id is not None:
             queryset = queryset.filter(author_id_id=user_id)
         if limit is not None:
             queryset = queryset[:int(limit)]
+
         return queryset
 
 
@@ -360,7 +362,8 @@ class ImageModify(generics.UpdateAPIView):
         if request.data['additonal_tags'] == "undefined":
             request.data['additonal_tags'] = ""
         else:
-            buf_tags = request.data['additonal_tags'].split(',')
+           # buf_tags = request.data['additonal_tags'].split(',')
+            buf_tags = re.split('[,、]', request.data['additonal_tags'])
             for i, tag in enumerate(buf_tags):
                 if (tag == ""):
                     continue
@@ -408,7 +411,8 @@ class ImageCreate(generics.CreateAPIView):
             request.data['additonal_tags'] = ""
         else:
 
-            buf_tags = request.data['additonal_tags'].split(',')
+            #buf_tags = request.data['additonal_tags'].split(',')
+            buf_tags = re.split('[,、]', request.data['additonal_tags'])
             for i, tag in enumerate(buf_tags):
                 if (tag == ""):
                     continue
