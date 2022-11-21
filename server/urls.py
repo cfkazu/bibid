@@ -24,6 +24,8 @@ urlpatterns = [
     path('delfav/<pk>', FavDeleteView.as_view()),
     path('userfav/<pk>', UserFavRetriveView.as_view()),
     path('getfavoritebyUserid/<pk>', GetFavoritebyAuthorId.as_view()),
+    path('getmyfavorite', GetMyFavoriteImage.as_view()),
+    path('getmyfavorite/<pk>', GetMyFavoriteImageLimit.as_view()),
     path('getfavorite', GetFavorite.as_view()),
     path('getfollowing/', MyFollow.as_view()),
     path('follow/<pk>', Follow.as_view()),

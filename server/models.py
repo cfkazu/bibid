@@ -50,6 +50,7 @@ class ImageModel(models.Model):
     tag7 = models.CharField(max_length=30, null=True)
     tag8 = models.CharField(max_length=30, null=True)
     tag9 = models.CharField(max_length=30, null=True)
+    ai_model = models.CharField(max_length=30, default="NovelAI")
 
 
 class CustomUser(AbstractUser):

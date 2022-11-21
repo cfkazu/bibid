@@ -192,6 +192,26 @@ class GetFavorite(generics.ListAPIView):
         return JsonResponse(data)
 
 
+class GetMyFavoriteImage(generics.ListAPIView):
+    serializer_class = FavSerializer
+    authentication_classes = (ExampleAuthentication,)        # 追加
+    permission_classes = (IsAuthenticated,)
+
+    def get_queryset(self):
+        user = self.request.user
+        return user.fav.all().order_by('id').reverse()
+
+
+class GetMyFavoriteImageLimit(generics.ListAPIView):
+    serializer_class = FavSerializer
+    authentication_classes = (ExampleAuthentication,)        # 追加
+    permission_classes = (IsAuthenticated,)
+
+    def get_queryset(self):
+        user = self.request.user
+        return user.fav.all().order_by('id').reverse()[:int(self.kwargs['pk'])]
+
+
 class GetFavoritebyAuthorId(APIView):
     authentication_classes = (ExampleAuthentication,)        # 追加
     permission_classes = (IsAuthenticated,)
@@ -347,11 +367,12 @@ class ImageModify(generics.UpdateAPIView):
                 if tag is not None:
                     tag = tag.replace("#", "")
                 tags[i] = tag
+
         if request.data['decription'] == "undefined":
             request.data['decription'] = ""
         image.additonal_tags = request.data['additonal_tags']
         image.title = request.data['title']
-        image.description = request.data['description']
+        image.decription = request.data['description']
         image.prompt = request.data['prompt']
         image.neg_prompt = request.data['neg_prompt']
         image.is_nsfw = request.data['is_nsfw']
@@ -400,7 +421,7 @@ class ImageCreate(generics.CreateAPIView):
         request.data['image']._name = request.data['image'].name+str(ImageModel.objects.order_by('id').last().id+1)
         newimg = ImageModel(title=request.data['title'], image=request.data['image'],
                             prompt=request.data['prompt'], neg_prompt=request.data['neg_prompt'], additonal_tags=request.data['additonal_tags'],
-                            decription=request.data['decription'], good=request.data['good'], is_nsfw=request.data['is_nsfw'], seed=request.data['seed'],
+                            decription=request.data['decription'], good=request.data['good'], is_nsfw=request.data['is_nsfw'], seed=request.data['seed'], ai_model=request.data['ai_model'],
                             tag0=tags[0], tag1=tags[1], tag2=tags[2], tag3=tags[3], tag4=tags[4], tag5=tags[5], tag6=tags[6], tag7=tags[7], tag8=tags[8], tag9=tags[9])
         newimg.author_id_id = request.user.id
         newimg.save()
@@ -533,7 +554,7 @@ def twitter_callback(request):
                 user, twitter_user = create_update_user_from_twitter(twitter_user_new)
                 if user is not None:
                     token, res = Token.objects.get_or_create(user=user)
-                    return redirect(settings.REDIRECT+"/#/about/?t="+token.key+"&id="+str(user.id))
+                    return redirect(settings.REDIRECT+"/#/?t="+token.key+"&id="+str(user.id))
                     return JsonResponse({'token': token.key})
             else:
                 messages.add_message(request, messages.ERROR, 'Unable to get profile details. Please try again.')
