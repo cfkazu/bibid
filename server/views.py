@@ -36,6 +36,9 @@ class ImageRetriveFromUserid(generics.ListAPIView):
         limit = self.request.query_params.get('limit')
         user_id = self.request.query_params.get('user_id')
         queryset = queryset.order_by('id').reverse()
+        is_nsfw = self.request.query_params.get('nsfw')
+        if is_nsfw is not None and is_nsfw != '-1':
+            queryset = queryset.filter(is_nsfw=is_nsfw)
         if user_id is not None:
             queryset = queryset.filter(author_id_id=user_id)
         if limit is not None:
