@@ -64,7 +64,7 @@ class UserTwitter(generics.RetrieveAPIView):
 
 
 class StandardResultsSetPagination(PageNumberPagination):
-    page_size = 10
+    page_size = 12
     page_size_query_param = 'page_size'
     max_page_size = 1000
 
@@ -111,6 +111,8 @@ class ImageSearchBytag_nopage(generics.ListAPIView):
             queryset = queryset.order_by('hour_good').reverse()
         elif order == "hour_popular_looked":
             queryset = queryset.order_by('hour_looked').reverse()
+        elif order == "recommend":
+            queryset = queryset.order_by("?")
         else:
             queryset = queryset.order_by('id')
         if limit is not None:
@@ -315,6 +317,56 @@ class ImageDelete(APIView):
             return HttpResponse(status=401)
 
         image.delete()
+        return HttpResponse(status=200)
+
+
+class ImageModify(generics.UpdateAPIView):
+    serializer_class = ImageSerializer
+    queryset = ImageModel.objects.all()
+    authentication_classes = (ExampleAuthentication,)
+    permission_classes = (IsAuthenticated,)
+
+    def put(self, request, pk):
+        image = ImageModel.objects.get(id=pk)
+        if image.author_id != request.user:
+            return HttpResponse(status=401)
+        if request.data.get('seed') is None:
+            request.data['seed'] = image.seed
+        if request.data['prompt'] == "undefined":
+            request.data['prompt'] = "入力がありません。"
+        if request.data['neg_prompt'] == "undefined":
+            request.data['neg_prompt'] = "入力がありません。"
+        tags = [None, None, None, None, None, None, None, None, None, None]
+        if request.data['additonal_tags'] == "undefined":
+            request.data['additonal_tags'] = ""
+        else:
+            buf_tags = request.data['additonal_tags'].split(',')
+            for i, tag in enumerate(buf_tags):
+                if (tag == ""):
+                    continue
+                if tag is not None:
+                    tag = tag.replace("#", "")
+                tags[i] = tag
+        if request.data['decription'] == "undefined":
+            request.data['decription'] = ""
+        image.additonal_tags = request.data['additonal_tags']
+        image.title = request.data['title']
+        image.description = request.data['description']
+        image.prompt = request.data['prompt']
+        image.neg_prompt = request.data['neg_prompt']
+        image.is_nsfw = request.data['is_nsfw']
+        image.seed = request.data['seed']
+        image.tag0 = tags[0]
+        image.tag1 = tags[1]
+        image.tag2 = tags[2]
+        image.tag3 = tags[3]
+        image.tag4 = tags[4]
+        image.tag5 = tags[5]
+        image.tag6 = tags[6]
+        image.tag7 = tags[7]
+        image.tag8 = tags[8]
+        image.tag9 = tags[9]
+        image.save()
         return HttpResponse(status=200)
 
 
