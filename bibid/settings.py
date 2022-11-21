@@ -19,7 +19,8 @@ env = environ.Env()
 
 env.read_env(os.path.join(BASE_DIR, '.env'))
 SECRET_KEY = env('SECRET_KEY')
-DEBUG = env('DEBUG')
+#DEBUG = env('DEBUG')
+DEBUG = env('DEBUG') == 'True'
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 
 
@@ -143,7 +144,7 @@ CORS_ORIGIN_WHITELIST = env.list('CORS_ORIGIN_WHITELIST')
 CORS_ALLOW_HEADERS = list(default_headers)+['X-AUTH-TOKEN']
 REDIRECT = env('REDIRECT')
 AUTH_USER_MODEL = 'server.CustomUser'
-if DEBUG == "True":
+if DEBUG:
     STATIC_ROOT = os.path.join(BASE_DIR, 'static')
     STATIC_URL = '/static/'
     MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
