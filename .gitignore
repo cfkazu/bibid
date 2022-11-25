@@ -28,3 +28,5 @@ server/__pycache__/
 twitter_api/__pycache__/
 
 server/migrations/__pycache__/
+
+server/migrations/
