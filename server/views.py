@@ -50,9 +50,11 @@ class ImageRetriveofMe(generics.ListAPIView):
 
 
 class MakeImageArchive(APIView):
+    permission_classes = (IsAuthenticated,)
+    authentication_classes = (ExampleAuthentication,)
 
     def get(self, request, pk):
-
+        user_id = request.user.id
         image_id = pk
         if image_id is None:
             return Response({'message': 'image_id is None'}, status=400)
@@ -60,7 +62,8 @@ class MakeImageArchive(APIView):
         image = ImageModel.objects.filter(id=image_id).first()
         if image is None:
             return Response({'res': 'Image not found'}, status=400)
-
+        if user_id != 1:
+            return Response({'res': 'You have no permission'}, status=400)
         image.is_archived = True
         image.save()
         return Response({'res': 'success'}, status=200)
