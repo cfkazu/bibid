@@ -24,6 +24,41 @@ class TwitterUser(models.Model):
         return self.screen_name
 
 
+class ImageMulModel(models.Model):
+    author_id = models.ForeignKey('CustomUser', on_delete=models.CASCADE)
+    title = models.CharField(max_length=30)
+    decription = models.TextField()
+    image = models.ImageField(upload_to='')
+    good = models.IntegerField(default=0)
+    today_looked = models.IntegerField(default=0)
+    today_good = models.IntegerField(default=0)
+    hour_looked = models.IntegerField(default=0)
+    hour_good = models.IntegerField(default=0)
+    tag0 = models.CharField(max_length=30, null=True)
+    tag1 = models.CharField(max_length=30, null=True)
+    tag2 = models.CharField(max_length=30, null=True)
+    tag3 = models.CharField(max_length=30, null=True)
+    tag4 = models.CharField(max_length=30, null=True)
+    tag5 = models.CharField(max_length=30, null=True)
+    tag6 = models.CharField(max_length=30, null=True)
+    tag7 = models.CharField(max_length=30, null=True)
+    tag8 = models.CharField(max_length=30, null=True)
+    tag9 = models.CharField(max_length=30, null=True)
+    ai_model = models.CharField(max_length=30, default="NovelAI")
+    is_archived = models.BooleanField(default=False)
+    additonal_tags = models.TextField(default="入力されていません")
+    is_nsfw = models.IntegerField(default=0)
+
+
+class SpecificImageModel(models.Model):
+    MotoImage = models.ForeignKey(ImageMulModel, on_delete=models.CASCADE, related_name="images")
+    image = models.ImageField(upload_to='')
+    prompt = models.TextField(default="入力されていません")
+    neg_prompt = models.TextField(default="入力されていません")
+
+    seed = models.IntegerField(default=-1)
+
+
 class ImageModel(models.Model):
     author_id = models.ForeignKey('CustomUser', on_delete=models.CASCADE)
     # author_id = models.IntegerField()
@@ -34,7 +69,7 @@ class ImageModel(models.Model):
     additonal_tags = models.TextField(default="入力されていません")
     decription = models.TextField()
     good = models.IntegerField(default=0)
-    is_nsfw = models.IntegerField(default=False)
+    is_nsfw = models.IntegerField(default=0)
     seed = models.IntegerField(default=-1)
     today_looked = models.IntegerField(default=0)
     today_good = models.IntegerField(default=0)
@@ -61,7 +96,7 @@ class CustomUser(AbstractUser):
 
 
 class FavImage(models.Model):
-    image = models.ForeignKey(ImageModel, on_delete=models.CASCADE)
+    image = models.ForeignKey(ImageMulModel, on_delete=models.CASCADE)
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='fav')
 
 
@@ -71,6 +106,6 @@ class FollowUser(models.Model):
 
 
 class CommentImage(models.Model):
-    image = models.ForeignKey(ImageModel, on_delete=models.CASCADE, related_name='comment_image')
+    image = models.ForeignKey(ImageMulModel, on_delete=models.CASCADE, related_name='comment_image')
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='comment')
     comment = models.TextField(null=False)

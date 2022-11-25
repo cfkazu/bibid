@@ -72,3 +72,28 @@ class CommentSerializer(serializers.ModelSerializer):
     class Meta:
         model = CommentImage
         fields = '__all__'
+
+
+class ImageMulSerializer(serializers.ModelSerializer):
+    author_id = UserTwitterSerializer()
+
+    class Meta:
+        model = ImageMulModel
+        fields = '__all__'
+
+
+class SpecificImageSerializer(serializers.ModelSerializer):
+    image_id = ImageMulSerializer
+
+    class Meta:
+        model = SpecificImageModel
+        fields = '__all__'
+
+
+class ImageMulSerializerwithImages(serializers.ModelSerializer):
+    author_id = UserTwitterSerializer()
+    images = SpecificImageSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = ImageMulModel
+        fields = '__all__'

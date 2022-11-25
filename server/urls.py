@@ -34,4 +34,8 @@ urlpatterns = [
     path('getcomment/<pk>', GetImageComment.as_view()),
     path('makeimagearchive/<pk>', MakeImageArchive.as_view()),
     path('myimage', ImageRetriveofMe.as_view()),
+    path('imagemul', ImageMulList.as_view()),
+    path('imagemul/<pk>', ImageMulRetrive.as_view()),
+    path('createimages', Create_images.as_view()),
+    path('idou', Idou.as_view()),
 ]

@@ -27,14 +27,27 @@ from django.conf import settings
 import re
 
 
+class ImageMulList(generics.ListAPIView):
+    serializer_class = ImageMulSerializerwithImages
+
+    def get_queryset(self):
+        queryset = ImageMulModel.objects.all()
+        return queryset
+
+
+class ImageMulRetrive(generics.RetrieveAPIView):
+    serializer_class = ImageMulSerializerwithImages
+    queryset = ImageMulModel.objects.all()
+
+
 class ImageRetriveofMe(generics.ListAPIView):
-    serializer_class = ImageSerializer
+    serializer_class = ImageMulSerializerwithImages
     pagination_class = PageNumberPagination
     permission_classes = (IsAuthenticated,)
     authentication_classes = (ExampleAuthentication,)
 
     def get_queryset(self):
-        queryset = ImageModel.objects.all()
+        queryset = ImageMulModel.objects.all()
         limit = self.request.query_params.get('limit')
         user_id = self.request.user.id
         queryset = queryset.order_by('id').reverse()
@@ -49,6 +62,23 @@ class ImageRetriveofMe(generics.ListAPIView):
         return queryset
 
 
+class Idou(APIView):
+    def get(self, request):
+        queryset = ImageMulModel.objects.all()
+        for image in queryset:
+            newmul = ImageMulModel(id=image.id, title=image.title, today_looked=image.today_looked, good=image.good,
+                                   today_good=image.today_good, hour_looked=image.hour_looked, hour_good=image.hour_good,
+                                   tag0=image.tag0, tag1=image.tag1, tag2=image.tag2, tag3=image.tag3, tag4=image.tag4,
+                                   tag5=image.tag5, tag6=image.tag6, tag7=image.tag7, tag8=image.tag8, tag9=image.tag9,
+                                   ai_model=image.ai_model, is_archived=image.is_archived, is_nsfw=image.is_nsfw,
+                                   additonal_tags=image.additonal_tags, image=image.image,
+                                   author_id_id=image.author_id_id, decription=image.decription)
+            newmul.save()
+            specific = SpecificImageModel(image=image.image, prompt=image.prompt, neg_prompt=image.neg_prompt, seed=image.seed, MotoImage=newmul)
+            specific.save()
+        return Response({'status': 'ok'})
+
+
 class MakeImageArchive(APIView):
     permission_classes = (IsAuthenticated,)
     authentication_classes = (ExampleAuthentication,)
@@ -59,7 +89,7 @@ class MakeImageArchive(APIView):
         if image_id is None:
             return Response({'message': 'image_id is None'}, status=400)
 
-        image = ImageModel.objects.filter(id=image_id).first()
+        image = ImageMulModel.objects.filter(id=image_id).first()
         if image is None:
             return Response({'res': 'Image not found'}, status=400)
         if user_id != 1:
@@ -70,11 +100,11 @@ class MakeImageArchive(APIView):
 
 
 class ImageRetriveFromUserid(generics.ListAPIView):
-    serializer_class = ImageSerializer
+    serializer_class = ImageMulSerializerwithImages
     pagination_class = PageNumberPagination
 
     def get_queryset(self):
-        queryset = ImageModel.objects.all()
+        queryset = ImageMulModel.objects.all()
         limit = self.request.query_params.get('limit')
         user_id = self.request.query_params.get('user_id')
         queryset = queryset.order_by('id').reverse()
@@ -118,10 +148,10 @@ class StandardResultsSetPagination(PageNumberPagination):
 
 
 class ImageSearchBytag_nopage(generics.ListAPIView):
-    serializer_class = ImageSerializer
+    serializer_class = ImageMulSerializerwithImages
 
     def get_queryset(self):
-        queryset = ImageModel.objects.select_related("author_id")
+        queryset = ImageMulModel.objects.select_related("author_id")
         limit = self.request.query_params.get('limit')
         word = self.request.query_params.get('word')
         order = self.request.query_params.get('order')
@@ -144,9 +174,7 @@ class ImageSearchBytag_nopage(generics.ListAPIView):
             queryset = queryset.filter(
                 Q(title__contains=word) |
                 Q(decription__contains=word) |
-                Q(additonal_tags__contains=word) |
-                Q(prompt__contains=word) |
-                Q(neg_prompt__contains=word)
+                Q(additonal_tags__contains=word)
             )
         if order == "new":
             queryset = queryset.order_by('id').reverse()
@@ -170,11 +198,11 @@ class ImageSearchBytag_nopage(generics.ListAPIView):
 
 
 class ImageSearchBytag(generics.ListAPIView):
-    serializer_class = ImageSerializer
+    serializer_class = ImageMulSerializerwithImages
     pagination_class = StandardResultsSetPagination
 
     def get_queryset(self):
-        queryset = ImageModel.objects.select_related("author_id")
+        queryset = ImageMulModel.objects.select_related("author_id")
         limit = self.request.query_params.get('limit')
         word = self.request.query_params.get('word')
         order = self.request.query_params.get('order')
@@ -197,9 +225,7 @@ class ImageSearchBytag(generics.ListAPIView):
             queryset = queryset.filter(
                 Q(title__contains=word) |
                 Q(decription__contains=word) |
-                Q(additonal_tags__contains=word) |
-                Q(prompt__contains=word) |
-                Q(neg_prompt__contains=word)
+                Q(additonal_tags__contains=word)
             )
         if order == "new":
             queryset = queryset.order_by('id').reverse()
@@ -320,7 +346,7 @@ class FavCreateView(APIView):
 
     def get(self, request, pk):
         user = request.user
-        image = ImageModel.objects.get(id=pk)
+        image = ImageMulModel.objects.get(id=pk)
         if (FavImage.objects.filter(image=image, user=user).exists()):
             return JsonResponse({"message": "already exist"})
         fav = FavImage(user=user, image=image)
@@ -338,7 +364,7 @@ class FavDeleteView(APIView):
 
     def get(self, request, pk):
         user = request.user
-        image = ImageModel.objects.get(id=pk)
+        image = ImageMulModel.objects.get(id=pk)
         fav = FavImage.objects.get(user=user, image=image)
         fav.delete()
         image.good -= 1
@@ -354,7 +380,7 @@ class CommentCreate(generics.CreateAPIView):
 
     def post(self, request):
         user = request.user
-        image = ImageModel.objects.get(id=request.data['image_id'])
+        image = ImageMulModel.objects.get(id=request.data['image_id'])
         comment = CommentImage(user=user, image=image, comment=request.data['comment'])
         comment.save()
         return HttpResponse(status=200)
@@ -365,24 +391,24 @@ class GetImageComment(generics.ListAPIView):
 
     def get_queryset(self):
         pk = self.kwargs['pk']
-        image = ImageModel.objects.get(id=pk)
+        image = ImageMulModel.objects.get(id=pk)
         comments = image.comment_image.all().order_by('id').reverse()
         return comments
 
 
 class Imagelist(generics.RetrieveAPIView):
-    serializer_class = ImageSerializer
-    queryset = ImageModel.objects.all()
+    serializer_class = ImageMulSerializerwithImages
+    queryset = ImageMulModel.objects.all()
 
 
 class ImageDelete(APIView):
-    serializer_class = ImageSerializer
-    queryset = ImageModel.objects.all()
+    serializer_class = ImageMulSerializerwithImages
+    queryset = ImageMulModel.objects.all()
     authentication_classes = (ExampleAuthentication,)
     permission_classes = (IsAuthenticated,)
 
     def get(self, request, pk):
-        image = ImageModel.objects.get(id=pk)
+        image = ImageMulModel.objects.get(id=pk)
         if image.author_id != request.user:
             return HttpResponse(status=401)
 
@@ -391,13 +417,13 @@ class ImageDelete(APIView):
 
 
 class ImageModify(generics.UpdateAPIView):
-    serializer_class = ImageSerializer
-    queryset = ImageModel.objects.all()
+    serializer_class = ImageMulSerializerwithImages
+    queryset = ImageMulModel.objects.all()
     authentication_classes = (ExampleAuthentication,)
     permission_classes = (IsAuthenticated,)
 
     def put(self, request, pk):
-        image = ImageModel.objects.get(id=pk)
+        image = ImageMulModel.objects.get(id=pk)
         if image.author_id != request.user:
             return HttpResponse(status=401)
         if request.data.get('seed') is None:
@@ -443,8 +469,8 @@ class ImageModify(generics.UpdateAPIView):
 
 
 class ImageCreate(generics.CreateAPIView):
-    serializer_class = ImageSerializer
-    queryset = ImageModel.objects.all()
+    serializer_class = ImageMulSerializerwithImages
+    queryset = ImageMulModel.objects.all()
     authentication_classes = (ExampleAuthentication,)        # 追加
     permission_classes = (IsAuthenticated,)
 
@@ -470,11 +496,11 @@ class ImageCreate(generics.CreateAPIView):
         if request.data['decription'] == "undefined":
             request.data['decription'] = ""
 
-        request.data['image']._name = request.data['image'].name+str(ImageModel.objects.order_by('id').last().id+1)+"_"+str(request.user.id)
-        newimg = ImageModel(title=request.data['title'], image=request.data['image'],
-                            prompt=request.data['prompt'], neg_prompt=request.data['neg_prompt'], additonal_tags=request.data['additonal_tags'],
-                            decription=request.data['decription'], good=request.data['good'], is_nsfw=request.data['is_nsfw'], seed=request.data['seed'], ai_model=request.data['ai_model'],
-                            tag0=tags[0], tag1=tags[1], tag2=tags[2], tag3=tags[3], tag4=tags[4], tag5=tags[5], tag6=tags[6], tag7=tags[7], tag8=tags[8], tag9=tags[9])
+        request.data['image']._name = request.data['image'].name+str(ImageMulModel.objects.order_by('id').last().id+1)+"_"+str(request.user.id)
+        newimg = ImageMulModel(title=request.data['title'], image=request.data['image'],
+                               prompt=request.data['prompt'], neg_prompt=request.data['neg_prompt'], additonal_tags=request.data['additonal_tags'],
+                               decription=request.data['decription'], good=request.data['good'], is_nsfw=request.data['is_nsfw'], seed=request.data['seed'], ai_model=request.data['ai_model'],
+                               tag0=tags[0], tag1=tags[1], tag2=tags[2], tag3=tags[3], tag4=tags[4], tag5=tags[5], tag6=tags[6], tag7=tags[7], tag8=tags[8], tag9=tags[9])
         newimg.author_id_id = request.user.id
         newimg.save()
 
@@ -484,9 +510,9 @@ class ImageCreate(generics.CreateAPIView):
         request.data['author_id_id'] = User.objects.get(id=request.user.id)
         print(request.data)
        # print(request.data)
-        serializer = ImageSerializer(data=request.data)
+        serializer = ImageMulSerializerwithImages(data=request.data)
         # print(vars(serializer))
-       # serializer = ImageSerializer(serializer, data={'author_id_id': request.user.id}, partial=True)
+       # serializer = ImageMulSerializerwithImages(serializer, data={'author_id_id': request.user.id}, partial=True)
         serializer.created_by = request.user
         serializer.author_id_id = request.user
         if serializer.is_valid():
@@ -501,10 +527,10 @@ class ImageCreate(generics.CreateAPIView):
 
 
 class ImageSearchBytag_count(APIView):
-    serializer_class = ImageSerializer
+    serializer_class = ImageMulSerializerwithImages
 
     def get(self, request):
-        queryset = ImageModel.objects.all()
+        queryset = ImageMulModel.objects.all()
         limit = self.request.query_params.get('limit')
         word = self.request.query_params.get('word')
         start = self.request.query_params.get('start')
@@ -660,3 +686,61 @@ def tamesi(request):
   #  print(vars(request))
   #  print(request.user)
     return HttpResponse('ログイン必要テスト')
+
+
+class Create_images(generics.CreateAPIView):
+    serializer_class = ImageMulSerializer
+    queryset = ImageMulModel.objects.all()
+    authentication_classes = (ExampleAuthentication,)        # 追加
+    permission_classes = (IsAuthenticated,)
+
+    def post(self, request):
+        print("post")
+        tags = [None, None, None, None, None, None, None, None, None, None]
+        if request.data['additonal_tags'] == "undefined":
+            request.data['additonal_tags'] = ""
+        else:
+            #buf_tags = request.data['additonal_tags'].split(',')
+            buf_tags = re.split('[,、]', request.data['additonal_tags'])
+            for i, tag in enumerate(buf_tags):
+                if (tag == ""):
+                    continue
+                if tag is not None:
+                    tag = tag.replace("#", "")
+                tags[i] = tag
+        if request.data['decription'] == "undefined":
+            request.data['decription'] = ""
+
+        newimg = ImageMulModel(title=request.data['title'],
+                               additonal_tags=request.data['additonal_tags'],
+                               decription=request.data['decription'], good=request.data['good'], is_nsfw=request.data['is_nsfw'], ai_model=request.data['ai_model'],
+                               tag0=tags[0], tag1=tags[1], tag2=tags[2], tag3=tags[3], tag4=tags[4], tag5=tags[5], tag6=tags[6], tag7=tags[7], tag8=tags[8], tag9=tags[9])
+        newimg.author_id_id = request.user.id
+
+        thumbnail = request.data['image'+str(i)]
+        thumbnail._name = request.data['image'+str(i)].name+str(ImageMulModel.objects.order_by('id').last().id+2)+"_"+str(request.user.id)+"_"+"0"
+        newimg.image = thumbnail
+        newimg.save()
+        for i in range(int(request.data['num'])):
+            nimg = request.data['image'+str(i)]
+            if request.data.get('prompt'+str(i)) is None:
+                request.data['prompt'+str(i)] = "undefined"
+            if request.data.get('neg_prompt'+str(i)) is None:
+                request.data['neg_prompt'+str(i)] = "undefined"
+            if request.data.get('seed+str(i)') is None:
+                request.data['seed'+str(i)] = -1
+            nprompt = request.data['prompt'+str(i)]
+            nneg_prompt = request.data['neg_prompt'+str(i)]
+            if nprompt == "undefined":
+                nprompt = "入力がありません"
+            if nneg_prompt == "undefined":
+                nneg_prompt = "入力がありません"
+            nseed = request.data['seed'+str(i)]
+            if i != 0:
+                nimg._name = request.data['image'+str(i)].name+str(ImageMulModel.objects.order_by('id').last().id+1) + \
+                    "_"+str(request.user.id)+"_"+str(i)
+            newspecificimg = SpecificImageModel(image=nimg, prompt=nprompt, neg_prompt=nneg_prompt, seed=nseed)
+            newspecificimg.MotoImage = newimg
+            newspecificimg.save()
+
+        return JsonResponse({'newid': newimg.id})
