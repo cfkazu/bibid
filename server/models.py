@@ -28,7 +28,7 @@ class ImageMulModel(models.Model):
     author_id = models.ForeignKey('CustomUser', on_delete=models.CASCADE)
     title = models.CharField(max_length=30)
     decription = models.TextField()
-    image = models.ImageField(upload_to='images/')
+    image = models.ImageField(upload_to='')
     good = models.IntegerField(default=0)
     today_looked = models.IntegerField(default=0)
     today_good = models.IntegerField(default=0)
@@ -96,7 +96,7 @@ class CustomUser(AbstractUser):
 
 
 class FavImage(models.Model):
-    image = models.ForeignKey(ImageModel, on_delete=models.CASCADE)
+    image = models.ForeignKey(ImageMulModel, on_delete=models.CASCADE)
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='fav')
 
 
@@ -106,6 +106,6 @@ class FollowUser(models.Model):
 
 
 class CommentImage(models.Model):
-    image = models.ForeignKey(ImageModel, on_delete=models.CASCADE, related_name='comment_image')
+    image = models.ForeignKey(ImageMulModel, on_delete=models.CASCADE, related_name='comment_image')
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='comment')
     comment = models.TextField(null=False)
