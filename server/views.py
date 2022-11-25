@@ -27,6 +27,48 @@ from django.conf import settings
 import re
 
 
+class ImageRetriveofMe(generics.ListAPIView):
+    serializer_class = ImageSerializer
+    pagination_class = PageNumberPagination
+    permission_classes = (IsAuthenticated,)
+    authentication_classes = (ExampleAuthentication,)
+
+    def get_queryset(self):
+        queryset = ImageModel.objects.all()
+        limit = self.request.query_params.get('limit')
+        user_id = self.request.user.id
+        queryset = queryset.order_by('id').reverse()
+        is_nsfw = self.request.query_params.get('nsfw')
+        if is_nsfw is not None and is_nsfw != '-1':
+            queryset = queryset.filter(is_nsfw=is_nsfw)
+        if user_id is not None:
+            queryset = queryset.filter(author_id_id=user_id)
+        if limit is not None:
+            queryset = queryset[:int(limit)]
+
+        return queryset
+
+
+class MakeImageArchive(APIView):
+    permission_classes = (IsAuthenticated,)
+    authentication_classes = (ExampleAuthentication,)
+
+    def get(self, request, pk):
+        user_id = request.user.id
+        image_id = pk
+        if image_id is None:
+            return Response({'message': 'image_id is None'}, status=400)
+
+        image = ImageModel.objects.filter(id=image_id).first()
+        if image is None:
+            return Response({'res': 'Image not found'}, status=400)
+        if user_id != 1:
+            return Response({'res': 'You have no permission'}, status=400)
+        image.is_archived = True
+        image.save()
+        return Response({'res': 'success'}, status=200)
+
+
 class ImageRetriveFromUserid(generics.ListAPIView):
     serializer_class = ImageSerializer
     pagination_class = PageNumberPagination
@@ -37,6 +79,7 @@ class ImageRetriveFromUserid(generics.ListAPIView):
         user_id = self.request.query_params.get('user_id')
         queryset = queryset.order_by('id').reverse()
         is_nsfw = self.request.query_params.get('nsfw')
+        queryset = queryset.filter(is_archived=False)
         if is_nsfw is not None and is_nsfw != '-1':
             queryset = queryset.filter(is_nsfw=is_nsfw)
         if user_id is not None:
@@ -86,6 +129,7 @@ class ImageSearchBytag_nopage(generics.ListAPIView):
         nsfw = self.request.query_params.get('nsfw')
         end = self.request.query_params.get('end')
         author_id = self.request.query_params.get('author_id')
+        queryset = queryset.filter(is_archived=False)
         if nsfw is not None and nsfw != "-1":
             queryset = queryset.filter(is_nsfw=nsfw)
         if author_id is not None:
@@ -138,6 +182,7 @@ class ImageSearchBytag(generics.ListAPIView):
         nsfw = self.request.query_params.get('nsfw')
         end = self.request.query_params.get('end')
         author_id = self.request.query_params.get('author_id')
+        queryset = queryset.filter(is_archived=False)
         if nsfw is not None and nsfw != "-1":
             queryset = queryset.filter(is_nsfw=nsfw)
         if author_id is not None:
@@ -204,7 +249,7 @@ class GetMyFavoriteImage(generics.ListAPIView):
 
     def get_queryset(self):
         user = self.request.user
-        return user.fav.all().order_by('id').reverse()
+        return user.fav.all().filter(image__is_archived=False).order_by('id').reverse()
 
 
 class GetMyFavoriteImageLimit(generics.ListAPIView):
@@ -214,7 +259,7 @@ class GetMyFavoriteImageLimit(generics.ListAPIView):
 
     def get_queryset(self):
         user = self.request.user
-        return user.fav.all().order_by('id').reverse()[:int(self.kwargs['pk'])]
+        return user.fav.all().filter(image__is_archived=False).order_by('id').reverse()[:int(self.kwargs['pk'])]
 
 
 class GetFavoritebyAuthorId(APIView):

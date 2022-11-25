@@ -32,4 +32,6 @@ urlpatterns = [
     path('unfollow/<pk>', UnFollow.as_view()),
     path('makecomment/', CommentCreate.as_view()),
     path('getcomment/<pk>', GetImageComment.as_view()),
+    path('makeimagearchive/<pk>', MakeImageArchive.as_view()),
+    path('myimage', ImageRetriveofMe.as_view()),
 ]
