@@ -722,12 +722,13 @@ class Create_images(generics.CreateAPIView):
         newimg.image = thumbnail
         newimg.save()
         for i in range(int(request.data['num'])):
-            nimg = request.data['image'+str(i)]
+            if i != 0:
+                nimg = request.data['image'+str(i)]
             if request.data.get('prompt'+str(i)) is None:
                 request.data['prompt'+str(i)] = "undefined"
             if request.data.get('neg_prompt'+str(i)) is None:
                 request.data['neg_prompt'+str(i)] = "undefined"
-            if request.data.get('seed+str(i)') is None:
+            if request.data.get('seed'+str(i)) is None:
                 request.data['seed'+str(i)] = -1
             nprompt = request.data['prompt'+str(i)]
             nneg_prompt = request.data['neg_prompt'+str(i)]
