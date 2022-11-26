@@ -736,10 +736,12 @@ class Create_images(generics.CreateAPIView):
             if nneg_prompt == "undefined":
                 nneg_prompt = "入力がありません"
             nseed = request.data['seed'+str(i)]
-            if i != 0:
-                nimg._name = request.data['image'+str(i)].name+str(ImageMulModel.objects.order_by('id').last().id+1) + \
-                    "_"+str(request.user.id)+"_"+str(i)
-            newspecificimg = SpecificImageModel(image=nimg, prompt=nprompt, neg_prompt=nneg_prompt, seed=nseed)
+
+            nimg._name = request.data['image'+str(i)].name+str(ImageMulModel.objects.order_by('id').last().id+1) + "_"+str(request.user.id)+"_"+str(i)
+            if i == 0:
+                newspecificimg = SpecificImageModel(image=newimg.image, prompt=nprompt, neg_prompt=nneg_prompt, seed=nseed)
+            else:
+                newspecificimg = SpecificImageModel(image=nimg, prompt=nprompt, neg_prompt=nneg_prompt, seed=nseed)
             newspecificimg.MotoImage = newimg
             newspecificimg.save()
 
