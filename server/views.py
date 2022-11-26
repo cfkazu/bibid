@@ -724,6 +724,7 @@ class Create_images(generics.CreateAPIView):
         for i in range(int(request.data['num'])):
             if i != 0:
                 nimg = request.data['image'+str(i)]
+                print(type(nimg))
             if request.data.get('prompt'+str(i)) is None:
                 request.data['prompt'+str(i)] = "undefined"
             if request.data.get('neg_prompt'+str(i)) is None:
@@ -737,8 +738,9 @@ class Create_images(generics.CreateAPIView):
             if nneg_prompt == "undefined":
                 nneg_prompt = "入力がありません"
             nseed = request.data['seed'+str(i)]
-
-            nimg._name = request.data['image'+str(i)].name+str(ImageMulModel.objects.order_by('id').last().id+1) + "_"+str(request.user.id)+"_"+str(i)
+            if i != 0:
+                nimg._name = request.data['image'+str(i)].name+str(ImageMulModel.objects.order_by('id').last().id +
+                                                                   1) + "_"+str(request.user.id)+"_"+str(i)
             if i == 0:
                 newspecificimg = SpecificImageModel(image=newimg.image, prompt=nprompt, neg_prompt=nneg_prompt, seed=nseed)
             else:
