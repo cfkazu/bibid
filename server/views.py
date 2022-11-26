@@ -53,7 +53,10 @@ class ImageRetriveofMe(generics.ListAPIView):
         queryset = queryset.order_by('id').reverse()
         is_nsfw = self.request.query_params.get('nsfw')
         if is_nsfw is not None and is_nsfw != '-1':
-            queryset = queryset.filter(is_nsfw=is_nsfw)
+            if is_nsfw == "-2":
+                queryset = queryset.filter(is_nsfw != 0)
+            else:
+                queryset = queryset.filter(is_nsfw=is_nsfw)
         if user_id is not None:
             queryset = queryset.filter(author_id_id=user_id)
         if limit is not None:
@@ -110,7 +113,9 @@ class ImageRetriveFromUserid(generics.ListAPIView):
         queryset = queryset.order_by('id').reverse()
         is_nsfw = self.request.query_params.get('nsfw')
         queryset = queryset.filter(is_archived=False)
-        if is_nsfw is not None and is_nsfw != '-1':
+        if is_nsfw == "-2":
+            queryset = queryset.filter(is_nsfw != 0)
+        else:
             queryset = queryset.filter(is_nsfw=is_nsfw)
         if user_id is not None:
             queryset = queryset.filter(author_id_id=user_id)
@@ -413,6 +418,77 @@ class ImageDelete(APIView):
             return HttpResponse(status=401)
 
         image.delete()
+        return HttpResponse(status=200)
+
+
+class SpecificImageModify(generics.UpdateAPIView):
+    serializer_class = SpecificImageSerializer
+    queryset = SpecificImageModel
+    authentication_classes = (ExampleAuthentication,)
+    permission_classes = (IsAuthenticated,)
+
+    def put(self, request, pk):
+        specific_image = SpecificImageModel.objects.get(id=pk)
+        if specific_image.MotoImage.author_id != request.user:
+            return HttpResponse(status=401)
+        if request.data.get('seed') is None:
+            request.data['seed'] = specific_image.seed
+        if request.data['prompt'] == "undefined":
+            request.data['prompt'] = "入力がありません。"
+        if request.data['neg_prompt'] == "undefined":
+            request.data['neg_prompt'] = "入力がありません。"
+        specific_image.seed = request.data['seed']
+        specific_image.prompt = request.data['prompt']
+        specific_image.neg_prompt = request.data['neg_prompt']
+        specific_image.save()
+        return HttpResponse(status=200)
+
+
+class ImageMulModify(generics.UpdateAPIView):
+    serializer_class = ImageMulSerializerwithImages
+    queryset = ImageMulModel.objects.all()
+    authentication_classes = (ExampleAuthentication,)
+    permission_classes = (IsAuthenticated,)
+
+    def put(self, request, pk):
+        image = ImageMulModel.objects.get(id=pk)
+        if image.author_id != request.user:
+            return HttpResponse(status=401)
+        if request.data.get('title') is None:
+            request.data['title'] = image.title
+        if request.data.get('description') is None:
+            request.data['description'] = image.description
+        tags = [None, None, None, None, None, None, None, None, None, None]
+        if request.data['additonal_tags'] == "undefined":
+            request.data['additonal_tags'] = ""
+        else:
+           # buf_tags = request.data['additonal_tags'].split(',')
+            buf_tags = re.split('[,、]', request.data['additonal_tags'])
+            for i, tag in enumerate(buf_tags):
+                if (tag == ""):
+                    continue
+                if tag is not None:
+                    tag = tag.replace("#", "")
+                tags[i] = tag
+
+        if request.data['decription'] == "undefined":
+            request.data['decription'] = ""
+        image.additonal_tags = request.data['additonal_tags']
+        image.title = request.data['title']
+        image.decription = request.data['description']
+        image.is_nsfw = request.data['is_nsfw']
+        image.tag0 = tags[0]
+        image.tag1 = tags[1]
+        image.tag2 = tags[2]
+        image.tag3 = tags[3]
+        image.tag4 = tags[4]
+        image.tag5 = tags[5]
+        image.tag6 = tags[6]
+        image.tag7 = tags[7]
+        image.tag8 = tags[8]
+        image.tag9 = tags[9]
+
+        image.save()
         return HttpResponse(status=200)
 
 

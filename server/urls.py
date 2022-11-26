@@ -38,4 +38,6 @@ urlpatterns = [
     path('imagemul/<pk>', ImageMulRetrive.as_view()),
     path('createimages', Create_images.as_view()),
     path('idou', Idou.as_view()),
+    path('updatespecificimage/<pk>', SpecificImageModify.as_view()),
+    path('updateimagemul/<pk>', ImageMulModify.as_view()),
 ]
