@@ -717,8 +717,8 @@ class Create_images(generics.CreateAPIView):
                                tag0=tags[0], tag1=tags[1], tag2=tags[2], tag3=tags[3], tag4=tags[4], tag5=tags[5], tag6=tags[6], tag7=tags[7], tag8=tags[8], tag9=tags[9])
         newimg.author_id_id = request.user.id
 
-        thumbnail = request.data['image'+str(i)]
-        thumbnail._name = request.data['image'+str(i)].name+str(ImageMulModel.objects.order_by('id').last().id+2)+"_"+str(request.user.id)+"_"+"0"
+        thumbnail = request.data['image'+str(0)]
+        thumbnail._name = request.data['image'+str(0)].name+str(ImageMulModel.objects.order_by('id').last().id+2)+"_"+str(request.user.id)+"_"+"0"
         newimg.image = thumbnail
         newimg.save()
         for i in range(int(request.data['num'])):
